@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tablero de Ajedrez</title>
+  <style>
+    .chessboard {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      width: 480px;
+      height: 480px;
+      margin: auto;
+      border: 2px solid black;
+    }
+    .chessboard div {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2em;
+      text-align: center;
+    }
+    .black {
+      background-color: #769656;
+    }
+    .white {
+      background-color: #eeeed2;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chessboard">
+    <!-- Fila 1 (Blancas) -->
+    <div class="black">♖</div>
+    <div class="white">♘</div>
+    <div class="black">♗</div>
+    <div class="white">♕</div>
+    <div class="black">♔</div>
+    <div class="white">♗</div>
+    <div class="black">♘</div>
+    <div class="white">♖</div>
+
+    <!-- Fila 2 -->
+    <div class="white">♙</div>
+    <div class="black">♙</div>
+    <div class="white">♙</div>
+    <div class="black">♙</div>
+    <div class="white">♙</div>
+    <div class="black">♙</div>
+    <div class="white">♙</div>
+    <div class="black">♙</div>
+
+    <!-- Fila 3 -->
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+
+    <!-- Fila 4 -->
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+
+    <!-- Fila 5 -->
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+
+    <!-- Fila 6 -->
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+    <div class="white"></div>
+    <div class="black"></div>
+
+    <!-- Fila 7 (Negras) -->
+    <div class="black">♙</div>
+    <div class="white">♙</div>
+    <div class="black">♙</div>
+    <div class="white">♙</div>
+    <div class="black">♙</div>
+    <div class="white">♙</div>
+    <div class="black">♙</div>
+    <div class="white">♙</div>
+
+    <!-- Fila 8 (Negras) -->
+    <div class="white">♖</div>
+    <div class="black">♘</div>
+    <div class="white">♗</div>
+    <div class="black">♕</div>
+    <div class="white">♔</div>
+    <div class="black">♗</div>
+    <div class="white">♘</div>
+    <div class="black">♖</div>
+  </div>
+
+</body>
+</html>
