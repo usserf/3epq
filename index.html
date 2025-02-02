@@ -1,66 +1,132 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hakuca.com</title>
+  <title>Hakuca Video Chat</title>
+ 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@webrtc/adapter@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest"></script>}
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <style>
     body {
       background-color: #f8f9fa;
       font-family: Arial, sans-serif;
     }
     .video-container {
-      max-width: 180px;
-      height: 140px;
-      background: #ddd;
-      border-radius: 10px;
+      width: 100%;
+      height: 100%;
+      max-width: 400px;
+      height: 300px;
+      background-color: #ddd;
+      border-radius: 15px;
       overflow: hidden;
     }
     .chat-container {
-      max-width: 500px;
-      height: 350px;
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 15px;
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
+      height: 100%;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .chat-box {
+      height: 75vh;
       overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    .input-group input {
+      border-radius: 8px 0 0 8px;
       border: 1px solid #ddd;
     }
-    .chat-input {
-      border: 1px solid #ccc;
-      border-radius: 8px;
+    .input-group button {
+      border-radius: 0 8px 8px 0;
+      background-color: #007bff;
+      color: white;
+      border: none;
+    }
+    .container-fluid {
+      height: 100vh;
+    }
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #ffffff;
+      padding: 5px 15px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+    }
+    .logo {
+      height: 50px;
+      width: auto;
+    }
+    .content {
+      margin-top: 80px;
+    }
+    .btn-dark-mode, .btn-share {
+      background-color: transparent;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      padding: 5px 10px;
+    }
+    .btn-dark-mode i, .btn-share i {
+      font-size: 1.5rem;
     }
   </style>
 </head>
 <body>
-
-  <div class="container text-center mt-3">
-    <h1 class="fw-bold text-primary">Hakuca.com</h1>
-  </div>
-
-  <div class="container d-flex flex-column align-items-center mt-4">
-    <div class="d-flex justify-content-center gap-3">
-      <div class="video-container">
-        <video id="localVideo" autoplay muted class="w-100 h-100"></video>
-      </div>
-      <div class="video-container">
-        <video id="remoteVideo" autoplay class="w-100 h-100"></video>
+  <!-- Header Section -->
+  <div class="header">
+    <img src="icon.png" alt="Hakuca Logo" class="logo">
+    <div class="d-flex align-items-center">
+      <button class="btn-dark-mode" id="darkModeBtn">
+        <i class="fas fa-moon"></i>
+      </button>
+      <div class="dropdown ms-2">
+        <button class="btn-share dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fas fa-share-alt"></i>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#">Facebook</a></li>
+          <li><a class="dropdown-item" href="#">Twitter</a></li>
+          <li><a class="dropdown-item" href="#">WhatsApp</a></li>
+        </ul>
       </div>
     </div>
+  </div>
 
-    <button id="startButton" class="btn btn-primary mt-3 px-4 py-2 fw-bold shadow-sm">
-      Iniciar Chat
-    </button>
+  <div class="container-fluid d-flex p-0">
+    <!-- Video Chat Section -->
+    <div class="col-12 col-md-6 p-4 d-flex flex-column align-items-center justify-content-between">
+      <div class="video-container mb-4">
+        <video id="localVideo" autoplay muted class="w-100 h-100"></video>
+      </div>
+      <div class="video-container mb-4">
+        <video id="remoteVideo" autoplay class="w-100 h-100"></video>
+      </div>
+      <button id="startButton" class="btn btn-primary w-100">Start Chat</button>
+    </div>
 
-    <div id="chatContainer" class="chat-container mt-4 d-flex flex-column">
-      <div id="chatArea" class="flex-grow-1 overflow-auto"></div>
-      <div class="input-group mt-3">
-        <input type="text" id="chatInput" class="form-control chat-input" placeholder="Escribe un mensaje...">
-        <button id="sendButton" class="btn btn-primary">Enviar</button>
+    <!-- Chat Section -->
+    <div class="col-12 col-md-6 p-4 d-flex flex-column">
+      <div id="chatContainer" class="chat-container d-flex flex-column">
+        <div id="chatArea" class="chat-box">
+          <!-- Messages will appear here -->
+        </div>
+        <div class="input-group">
+          <input type="text" id="chatInput" class="form-control" placeholder="Type a message...">
+          <button id="sendButton" class="btn">Send</button>
+        </div>
       </div>
     </div>
   </div>
