@@ -35,16 +35,22 @@
   <!-- Main Content -->
   <div class="flex flex-col md:flex-row w-full justify-center items-center mt-20">
     <!-- Video Section -->
-    <div class="flex flex-col items-center space-y-4 md:w-1/2 p-4">
-      <div class="w-full max-w-md bg-gray-300 rounded-lg overflow-hidden shadow-md">
-        <video id="localVideo" autoplay muted class="w-full h-full"></video>
+    <div class="flex flex-row items-center justify-center space-x-4 p-4 w-full">
+      <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+        <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
       </div>
-      <div class="w-full max-w-md bg-gray-300 rounded-lg overflow-hidden shadow-md">
-        <video id="remoteVideo" autoplay class="w-full h-full"></video>
+
+      <!-- Start Button in the middle -->
+      <button id="startButton" class="w-32 py-2 bg-blue-600 text-white rounded-lg">Start Chat</button>
+
+      <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+        <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
       </div>
-      <button id="startButton" class="w-full py-3 bg-blue-600 text-white rounded-lg mt-4">Start Chat</button>
     </div>
   </div>
+
+
+
 
   <script>
     const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
