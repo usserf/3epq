@@ -117,19 +117,19 @@
       <button id="startButton" class="btn btn-primary w-100">Start Chat</button>
     </div>
 
-    <!-- Chat Section -->
-    <div class="col-12 col-md-6 p-4 d-flex flex-column">
-      <div id="chatContainer" class="chat-container d-flex flex-column">
-        <div id="chatArea" class="chat-box">
-          <!-- Messages will appear here -->
-        </div>
-        <div class="input-group">
-          <input type="text" id="chatInput" class="form-control" placeholder="Type a message...">
-          <button id="sendButton" class="btn">Send</button>
-        </div>
-      </div>
+   <!-- Chat Section -->
+<div class="col-12 col-md-6 p-4 d-flex flex-column">
+  <div id="chatContainer" class="chat-container d-flex flex-column">
+    <div id="chatArea" class="chat-box">
+      <!-- Messages will appear here -->
+    </div>
+    <div class="input-group">
+      <input type="text" id="chatInput" class="form-control" placeholder="Type a message...">
+      <button id="sendButton" class="btn">Send</button>
     </div>
   </div>
+</div>
+
 
   <script>
 const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
@@ -239,7 +239,8 @@ function appendMessage(user, message) {
 }
 
 socket.on('chat-message', (data) => {
-  appendMessage('Stranger', data.message);  // Aquí se cambió para recibir y mostrar correctamente el mensaje del otro usuario
+  // Aquí comprobamos si el mensaje es del "you" o "stranger"
+  appendMessage(data.sender === socket.id ? 'you' : 'stranger', data.message);
 });
 
   </script>
