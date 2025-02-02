@@ -46,112 +46,121 @@
   </div>
 
   <script>
-    const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    const startButton = document.getElementById('startButton');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatInput = document.getElementById('chatInput');
-    const sendMessage = document.getElementById('sendMessage');
-    
-    let localStream;
-    let peerConnection;
-    let isChatting = false;
+   const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
+const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+const startButton = document.getElementById('startButton');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendMessage = document.getElementById('sendMessage');
 
-    startButton.addEventListener('click', startConnection);
-    sendMessage.addEventListener('click', sendChatMessage);
+let localStream;
+let peerConnection;
+let isChatting = false;
 
-    async function startConnection() {
-      // Clear all previous messages when starting a new chat
-      chatMessages.innerHTML = '';
+startButton.addEventListener('click', startConnection);
+sendMessage.addEventListener('click', sendChatMessage);
 
-      if (!isChatting) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localStream = stream;
+async function startConnection() {
+  // Clear all previous messages when starting a new chat
+  chatMessages.innerHTML = '';
 
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+  if (!isChatting) {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = stream;
+    localStream = stream;
 
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        socket.emit('offer', offer);
+    peerConnection = new RTCPeerConnection();
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-        peerConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            socket.emit('ice-candidate', event.candidate);
-          }
-        };
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit('offer', offer);
 
-        peerConnection.ontrack = (event) => {
-          remoteVideo.srcObject = event.streams[0];
-        };
-
-        isChatting = true;
-        startButton.textContent = "Disconnect";
-      } else {
-        stopConnection();
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit('ice-candidate', event.candidate);
       }
-    }
+    };
 
-    function stopConnection() {
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-      }
-      if (peerConnection) {
-        peerConnection.close();
-      }
-      localVideo.srcObject = null;
-      remoteVideo.srcObject = null;
-      isChatting = false;
-      startButton.textContent = "Start Chat";
-    }
+    peerConnection.ontrack = (event) => {
+      remoteVideo.srcObject = event.streams[0];
+    };
 
-    socket.on('offer', async (offer) => {
-      if (!peerConnection) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localStream = stream;
+    isChatting = true;
+    startButton.textContent = "Disconnect";
+  } else {
+    stopConnection();
+  }
+}
 
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-      }
+function stopConnection() {
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+  }
+  if (peerConnection) {
+    peerConnection.close();
+  }
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+  isChatting = false;
+  startButton.textContent = "Start Chat";
+  
+  // Clear chat messages when disconnecting
+  chatMessages.innerHTML = '';
+}
 
-      await peerConnection.setRemoteDescription(offer);
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      socket.emit('answer', answer);
-    });
+socket.on('offer', async (offer) => {
+  if (!peerConnection) {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = stream;
+    localStream = stream;
 
-    socket.on('answer', (answer) => {
-      peerConnection.setRemoteDescription(answer);
-    });
+    peerConnection = new RTCPeerConnection();
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+  }
 
-    socket.on('ice-candidate', (candidate) => {
-      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-    });
+  await peerConnection.setRemoteDescription(offer);
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answer);
+  socket.emit('answer', answer);
+});
 
-    socket.on('chat-message', (data) => {
-      const messageDiv = document.createElement('div');
-      messageDiv.classList.add('p-2', 'mb-2', 'rounded-lg');
-      if (data.user === 'You') {
-        messageDiv.classList.add('bg-blue-100');
-        messageDiv.textContent = `You: ${data.message}`;
-      } else {
-        messageDiv.classList.add('bg-gray-200');
-        messageDiv.textContent = `Stranger: ${data.message}`;
-      }
-      chatMessages.appendChild(messageDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the latest message
-    });
+socket.on('answer', (answer) => {
+  peerConnection.setRemoteDescription(answer);
+});
 
-    function sendChatMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        socket.emit('chat-message', { sender: 'You', message }); // 'You' is added as the sender
-        chatInput.value = '';
-      }
-    }
+socket.on('ice-candidate', (candidate) => {
+  peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+});
+
+// Show chat messages from both user and stranger
+socket.on('chat-message', (data) => {
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('p-2', 'mb-2', 'rounded-lg');
+  
+  // Check sender and assign correct message style
+  if (data.sender === 'You') {
+    messageDiv.classList.add('bg-blue-100');
+    messageDiv.textContent = `You: ${data.message}`;
+  } else {
+    messageDiv.classList.add('bg-gray-200');
+    messageDiv.textContent = `Stranger: ${data.message}`;
+  }
+
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the latest message
+});
+
+function sendChatMessage() {
+  const message = chatInput.value.trim();
+  if (message) {
+    // Emit message with 'You' as sender
+    socket.emit('chat-message', { sender: 'You', message });
+    chatInput.value = ''; // Clear input field
+  }
+}
+
   </script>
 </body>
 </html>
