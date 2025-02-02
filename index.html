@@ -132,115 +132,116 @@
   </div>
 
   <script>
-    const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    const startButton = document.getElementById('startButton');
-    const chatArea = document.getElementById('chatArea');
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
+const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
+const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+const startButton = document.getElementById('startButton');
+const chatArea = document.getElementById('chatArea');
+const chatInput = document.getElementById('chatInput');
+const sendButton = document.getElementById('sendButton');
 
-    let localStream;
-    let peerConnection;
-    let isChatting = false;
+let localStream;
+let peerConnection;
+let isChatting = false;
 
-    startButton.addEventListener('click', startConnection);
-    sendButton.addEventListener('click', sendMessage);
+startButton.addEventListener('click', startConnection);
+sendButton.addEventListener('click', sendMessage);
 
-    async function startConnection() {
-      if (!isChatting) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localStream = stream;
+async function startConnection() {
+  if (!isChatting) {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = stream;
+    localStream = stream;
 
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    peerConnection = new RTCPeerConnection();
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        socket.emit('offer', offer);
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit('offer', offer);
 
-        peerConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            socket.emit('ice-candidate', event.candidate);
-          }
-        };
-
-        peerConnection.ontrack = (event) => {
-          remoteVideo.srcObject = event.streams[0];
-        };
-
-        isChatting = true;
-        startButton.textContent = "Desconectar";
-      } else {
-        stopConnection();
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit('ice-candidate', event.candidate);
       }
-    }
+    };
 
-    function stopConnection() {
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-      }
-      if (peerConnection) {
-        peerConnection.close();
-      }
-      localVideo.srcObject = null;
-      remoteVideo.srcObject = null;
-      isChatting = false;
-      startButton.textContent = "Iniciar Chat";
-    }
+    peerConnection.ontrack = (event) => {
+      remoteVideo.srcObject = event.streams[0];
+    };
 
-    socket.on('offer', async (offer) => {
-      if (!peerConnection) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localStream = stream;
+    isChatting = true;
+    startButton.textContent = "Desconectar";
+  } else {
+    stopConnection();
+  }
+}
 
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-      }
+function stopConnection() {
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+  }
+  if (peerConnection) {
+    peerConnection.close();
+  }
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+  isChatting = false;
+  startButton.textContent = "Iniciar Chat";
+}
 
-      await peerConnection.setRemoteDescription(offer);
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      socket.emit('answer', answer);
-    });
+socket.on('offer', async (offer) => {
+  if (!peerConnection) {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = stream;
+    localStream = stream;
 
-    socket.on('answer', (answer) => {
-      peerConnection.setRemoteDescription(answer);
-    });
+    peerConnection = new RTCPeerConnection();
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+  }
 
-    socket.on('ice-candidate', (candidate) => {
-      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-    });
+  await peerConnection.setRemoteDescription(offer);
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answer);
+  socket.emit('answer', answer);
+});
 
-    function sendMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        appendMessage('you', message);
-        socket.emit('chat-message', { sender: socket.id, message });
-        chatInput.value = '';
-      }
-    }
+socket.on('answer', (answer) => {
+  peerConnection.setRemoteDescription(answer);
+});
 
-    function appendMessage(user, message) {
-      const messageElement = document.createElement('div');
-      messageElement.classList.add('p-2', 'my-2', 'rounded-lg', 'text-white');
-      
-      if (user === 'you') {
-        messageElement.classList.add('bg-blue-600', 'text-right');
-      } else {
-        messageElement.classList.add('bg-gray-600', 'text-left');
-      }
+socket.on('ice-candidate', (candidate) => {
+  peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+});
 
-      messageElement.textContent = `${user === 'you' ? 'You' : 'Stranger'}: ${message}`;
-      chatArea.appendChild(messageElement);
-      chatArea.scrollTop = chatArea.scrollHeight;
-    }
+function sendMessage() {
+  const message = chatInput.value.trim();
+  if (message) {
+    appendMessage('you', message);
+    socket.emit('chat-message', { sender: socket.id, message });
+    chatInput.value = '';
+  }
+}
 
-    socket.on('chat-message', (data) => {
-      appendMessage(data.user, data.message);
-    });
+function appendMessage(user, message) {
+  const messageElement = document.createElement('div');
+  messageElement.classList.add('p-2', 'my-2', 'rounded-lg', 'text-white');
+
+  if (user === 'you') {
+    messageElement.classList.add('bg-blue-600', 'text-right');
+  } else {
+    messageElement.classList.add('bg-gray-600', 'text-left');
+  }
+
+  messageElement.textContent = `${user === 'you' ? 'You' : 'Stranger'}: ${message}`;
+  chatArea.appendChild(messageElement);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+socket.on('chat-message', (data) => {
+  appendMessage('Stranger', data.message);  // Aquí se cambió para recibir y mostrar correctamente el mensaje del otro usuario
+});
+
   </script>
 </body>
 </html>
