@@ -15,6 +15,21 @@
   <!-- Header Section -->
   <div class="w-full bg-white shadow-md p-4 flex justify-between items-center fixed top-0 left-0 z-10">
     <img src="icon.png" alt="Hakuca Logo" class="h-12">
+    <div class="flex items-center space-x-2">
+      <button class="text-blue-500">
+        <i class="fas fa-moon text-2xl"></i>
+      </button>
+      <div class="dropdown relative">
+        <button class="text-blue-500 flex items-center">
+          <i class="fas fa-share-alt text-2xl"></i>
+        </button>
+        <ul class="dropdown-menu absolute hidden bg-white text-black shadow-lg w-32">
+          <li><a href="#" class="block px-4 py-2">Facebook</a></li>
+          <li><a href="#" class="block px-4 py-2">Twitter</a></li>
+          <li><a href="#" class="block px-4 py-2">WhatsApp</a></li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <!-- Main Content -->
@@ -32,135 +47,124 @@
         <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
       </div>
     </div>
+  </div>
 
-    <!-- Chat Section -->
-    <div class="w-full p-4 bg-white rounded-lg shadow-md mt-8">
-      <div id="chatMessages" class="h-48 overflow-y-auto mb-4 p-2 border border-gray-300 rounded-lg bg-gray-50">
-        <!-- Messages will be displayed here -->
-      </div>
-      <div class="flex">
-        <input type="text" id="chatInput" class="w-full p-2 border border-gray-300 rounded-l-lg" placeholder="Type a message">
-        <button id="sendMessage" class="p-2 bg-blue-600 text-white rounded-r-lg">Send</button>
-      </div>
+  <!-- Chat Section -->
+  <div class="flex flex-col items-center w-full p-4 space-y-4">
+    <div id="messages" class="w-full max-w-2xl h-48 overflow-auto p-4 bg-white rounded-lg shadow-md">
+      <!-- Messages will be appended here -->
+    </div>
+    <div class="w-full max-w-2xl flex items-center space-x-2">
+      <input id="chatInput" type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Type your message">
+      <button id="sendButton" class="p-2 bg-blue-600 text-white rounded-lg">Send</button>
     </div>
   </div>
 
   <script>
-   const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
-const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
-const startButton = document.getElementById('startButton');
-const chatMessages = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const sendMessage = document.getElementById('sendMessage');
+    const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const startButton = document.getElementById('startButton');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+    const messagesContainer = document.getElementById('messages');
 
-let localStream;
-let peerConnection;
-let isChatting = false;
+    let localStream;
+    let peerConnection;
+    let isChatting = false;
 
-startButton.addEventListener('click', startConnection);
-sendMessage.addEventListener('click', sendChatMessage);
+    startButton.addEventListener('click', startConnection);
 
-async function startConnection() {
-  // Clear all previous messages when starting a new chat
-  chatMessages.innerHTML = '';
+    sendButton.addEventListener('click', sendMessage);
 
-  if (!isChatting) {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localVideo.srcObject = stream;
-    localStream = stream;
+    async function startConnection() {
+      if (!isChatting) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localStream = stream;
 
-    peerConnection = new RTCPeerConnection();
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit('offer', offer);
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', offer);
 
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit('ice-candidate', event.candidate);
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit('ice-candidate', event.candidate);
+          }
+        };
+
+        peerConnection.ontrack = (event) => {
+          remoteVideo.srcObject = event.streams[0];
+        };
+
+        isChatting = true;
+        startButton.textContent = "Desconectar";
+      } else {
+        stopConnection();
       }
-    };
+    }
 
-    peerConnection.ontrack = (event) => {
-      remoteVideo.srcObject = event.streams[0];
-    };
+    function stopConnection() {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      if (peerConnection) {
+        peerConnection.close();
+      }
+      localVideo.srcObject = null;
+      remoteVideo.srcObject = null;
+      isChatting = false;
+      startButton.textContent = "Iniciar Chat";
+    }
 
-    isChatting = true;
-    startButton.textContent = "Disconnect";
-  } else {
-    stopConnection();
-  }
-}
+    socket.on('offer', async (offer) => {
+      if (!peerConnection) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localStream = stream;
 
-function stopConnection() {
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-  }
-  if (peerConnection) {
-    peerConnection.close();
-  }
-  localVideo.srcObject = null;
-  remoteVideo.srcObject = null;
-  isChatting = false;
-  startButton.textContent = "Start Chat";
-  
-  // Clear chat messages when disconnecting
-  chatMessages.innerHTML = '';
-}
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+      }
 
-socket.on('offer', async (offer) => {
-  if (!peerConnection) {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localVideo.srcObject = stream;
-    localStream = stream;
+      await peerConnection.setRemoteDescription(offer);
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('answer', answer);
+    });
 
-    peerConnection = new RTCPeerConnection();
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-  }
+    socket.on('answer', (answer) => {
+      peerConnection.setRemoteDescription(answer);
+    });
 
-  await peerConnection.setRemoteDescription(offer);
-  const answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(answer);
-  socket.emit('answer', answer);
-});
+    socket.on('ice-candidate', (candidate) => {
+      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    });
 
-socket.on('answer', (answer) => {
-  peerConnection.setRemoteDescription(answer);
-});
+    socket.on('chat-message', (data) => {
+      // Append the message to the chat
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('p-2', 'my-1', 'rounded-lg');
+      messageElement.textContent = `${data.user}: ${data.message}`;
+      messagesContainer.appendChild(messageElement);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
 
-socket.on('ice-candidate', (candidate) => {
-  peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-});
-
-// Show chat messages from both user and stranger
-socket.on('chat-message', (data) => {
-  const messageDiv = document.createElement('div');
-  messageDiv.classList.add('p-2', 'mb-2', 'rounded-lg');
-  
-  // Check sender and assign correct message style
-  if (data.sender === 'You') {
-    messageDiv.classList.add('bg-blue-100');
-    messageDiv.textContent = `You: ${data.message}`;
-  } else {
-    messageDiv.classList.add('bg-gray-200');
-    messageDiv.textContent = `Stranger: ${data.message}`;
-  }
-
-  chatMessages.appendChild(messageDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the latest message
-});
-
-function sendChatMessage() {
-  const message = chatInput.value.trim();
-  if (message) {
-    // Emit message with 'You' as sender
-    socket.emit('chat-message', { sender: 'You', message });
-    chatInput.value = ''; // Clear input field
-  }
-}
-
+    function sendMessage() {
+      const message = chatInput.value;
+      if (message) {
+        socket.emit('chat-message', { sender: 'You', message });
+        chatInput.value = ''; // Clear the input field
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('p-2', 'my-1', 'rounded-lg');
+        messageElement.textContent = `You: ${message}`;
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }
   </script>
 </body>
 </html>
