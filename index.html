@@ -15,48 +15,31 @@
   <!-- Header Section -->
   <div class="w-full bg-white shadow-md p-4 flex justify-between items-center fixed top-0 left-0 z-10">
     <img src="icon.png" alt="Hakuca Logo" class="h-12">
-    <div class="flex items-center space-x-2">
-      <button class="text-blue-500">
-        <i class="fas fa-moon text-2xl"></i>
-      </button>
-      <div class="dropdown relative">
-        <button class="text-blue-500 flex items-center">
-          <i class="fas fa-share-alt text-2xl"></i>
-        </button>
-        <ul class="dropdown-menu absolute hidden bg-white text-black shadow-lg w-32">
-          <li><a href="#" class="block px-4 py-2">Facebook</a></li>
-          <li><a href="#" class="block px-4 py-2">Twitter</a></li>
-          <li><a href="#" class="block px-4 py-2">WhatsApp</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Content -->
-  <div class="flex flex-col md:flex-row w-full justify-center items-center mt-20">
-    <!-- Video Section -->
-    <div class="flex flex-row items-center justify-center space-x-4 p-4 w-full">
-      <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
-        <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
-      </div>
-
-      <!-- Start Button in the middle -->
-      <button id="startButton" class="w-32 py-2 bg-blue-600 text-white rounded-lg">Start Chat</button>
-
-      <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
-        <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
-      </div>
-    </div>
   </div>
 
   <!-- Chat Section -->
-  <div class="flex flex-col items-center w-full p-4 space-y-4">
-    <div id="messages" class="w-full max-w-2xl h-48 overflow-auto p-4 bg-white rounded-lg shadow-md">
-      <!-- Messages will be appended here -->
+  <div id="chatContainer" class="flex flex-col items-center w-full mt-20">
+    <div id="chatMessages" class="w-full max-w-md bg-white p-4 rounded-lg shadow-md space-y-4 overflow-auto h-80">
+      <!-- Chat messages will be appended here -->
     </div>
-    <div class="w-full max-w-2xl flex items-center space-x-2">
-      <input id="chatInput" type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Type your message">
-      <button id="sendButton" class="p-2 bg-blue-600 text-white rounded-lg">Send</button>
+
+    <div class="w-full max-w-md mt-4 flex items-center space-x-4">
+      <input id="chatInput" type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Type a message...">
+      <button id="sendMessageButton" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Send</button>
+    </div>
+  </div>
+
+  <!-- Video Section -->
+  <div class="flex flex-row items-center justify-center space-x-4 p-4 w-full mt-10">
+    <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+      <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
+    </div>
+
+    <!-- Start Button in the middle -->
+    <button id="startButton" class="w-32 py-2 bg-blue-600 text-white rounded-lg">Start Chat</button>
+
+    <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+      <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
     </div>
   </div>
 
@@ -66,17 +49,17 @@
     const remoteVideo = document.getElementById('remoteVideo');
     const startButton = document.getElementById('startButton');
     const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    const messagesContainer = document.getElementById('messages');
+    const sendMessageButton = document.getElementById('sendMessageButton');
+    const chatMessages = document.getElementById('chatMessages');
 
     let localStream;
     let peerConnection;
     let isChatting = false;
 
     startButton.addEventListener('click', startConnection);
+    sendMessageButton.addEventListener('click', sendMessage);
 
-    sendButton.addEventListener('click', sendMessage);
-
+    // Start the video connection
     async function startConnection() {
       if (!isChatting) {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -107,6 +90,7 @@
       }
     }
 
+    // Stop the video connection
     function stopConnection() {
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
@@ -120,6 +104,31 @@
       startButton.textContent = "Iniciar Chat";
     }
 
+    // Send chat message
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (message) {
+        socket.emit('chat-message', { sender: "You", message });
+        chatInput.value = '';
+        appendMessage("You", message);
+      }
+    }
+
+    // Append message to the chat
+    function appendMessage(sender, message) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
+      messageElement.innerHTML = `<strong>${sender}: </strong>${message}`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Listen for chat messages from other users
+    socket.on('chat-message', (data) => {
+      appendMessage(data.sender, data.message);
+    });
+
+    // Handle incoming offers, answers, and ICE candidates
     socket.on('offer', async (offer) => {
       if (!peerConnection) {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -144,27 +153,10 @@
       peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
     });
 
-    socket.on('chat-message', (data) => {
-      // Append the message to the chat
-      const messageElement = document.createElement('div');
-      messageElement.classList.add('p-2', 'my-1', 'rounded-lg');
-      messageElement.textContent = `${data.user}: ${data.message}`;
-      messagesContainer.appendChild(messageElement);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    socket.on('disconnect', () => {
+      // Clear chat when the user disconnects
+      chatMessages.innerHTML = '';
     });
-
-    function sendMessage() {
-      const message = chatInput.value;
-      if (message) {
-        socket.emit('chat-message', { sender: 'You', message });
-        chatInput.value = ''; // Clear the input field
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('p-2', 'my-1', 'rounded-lg');
-        messageElement.textContent = `You: ${message}`;
-        messagesContainer.appendChild(messageElement);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }
-    }
   </script>
 </body>
 </html>
