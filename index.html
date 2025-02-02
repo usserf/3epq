@@ -117,132 +117,128 @@
       <button id="startButton" class="btn btn-primary w-100">Start Chat</button>
     </div>
 
-   <!-- Chat Section -->
-<div class="col-12 col-md-6 p-4 d-flex flex-column">
-  <div id="chatContainer" class="chat-container d-flex flex-column">
-    <div id="chatArea" class="chat-box">
-      <!-- Messages will appear here -->
-    </div>
-    <div class="input-group">
-      <input type="text" id="chatInput" class="form-control" placeholder="Type a message...">
-      <button id="sendButton" class="btn">Send</button>
+    <!-- Chat Section -->
+    <div class="col-12 col-md-6 p-4 d-flex flex-column">
+      <div id="chatContainer" class="chat-container d-flex flex-column">
+        <div id="chatArea" class="chat-box"></div>
+        <div class="input-group">
+          <input type="text" id="chatInput" class="form-control" placeholder="Type a message...">
+          <button id="sendButton" class="btn">Send</button>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-
 
   <script>
-const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
-const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
-const startButton = document.getElementById('startButton');
-const chatArea = document.getElementById('chatArea');
-const chatInput = document.getElementById('chatInput');
-const sendButton = document.getElementById('sendButton');
+    const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const startButton = document.getElementById('startButton');
+    const chatArea = document.getElementById('chatArea');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
 
-let localStream;
-let peerConnection;
-let isChatting = false;
+    let localStream;
+    let peerConnection;
+    let isChatting = false;
 
-startButton.addEventListener('click', startConnection);
-sendButton.addEventListener('click', sendMessage);
+    startButton.addEventListener('click', startConnection);
+    sendButton.addEventListener('click', sendMessage);
 
-async function startConnection() {
-  if (!isChatting) {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localVideo.srcObject = stream;
-    localStream = stream;
+    async function startConnection() {
+      if (!isChatting) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localStream = stream;
 
-    peerConnection = new RTCPeerConnection();
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit('offer', offer);
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', offer);
 
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit('ice-candidate', event.candidate);
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit('ice-candidate', event.candidate);
+          }
+        };
+
+        peerConnection.ontrack = (event) => {
+          remoteVideo.srcObject = event.streams[0];
+        };
+
+        isChatting = true;
+        startButton.textContent = "Desconectar";
+      } else {
+        stopConnection();
       }
-    };
+    }
 
-    peerConnection.ontrack = (event) => {
-      remoteVideo.srcObject = event.streams[0];
-    };
+    function stopConnection() {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      if (peerConnection) {
+        peerConnection.close();
+      }
+      localVideo.srcObject = null;
+      remoteVideo.srcObject = null;
+      isChatting = false;
+      startButton.textContent = "Iniciar Chat";
+    }
 
-    isChatting = true;
-    startButton.textContent = "Desconectar";
-  } else {
-    stopConnection();
-  }
-}
+    socket.on('offer', async (offer) => {
+      if (!peerConnection) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localStream = stream;
 
-function stopConnection() {
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-  }
-  if (peerConnection) {
-    peerConnection.close();
-  }
-  localVideo.srcObject = null;
-  remoteVideo.srcObject = null;
-  isChatting = false;
-  startButton.textContent = "Iniciar Chat";
-}
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+      }
 
-socket.on('offer', async (offer) => {
-  if (!peerConnection) {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    localVideo.srcObject = stream;
-    localStream = stream;
+      await peerConnection.setRemoteDescription(offer);
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('answer', answer);
+    });
 
-    peerConnection = new RTCPeerConnection();
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-  }
+    socket.on('answer', (answer) => {
+      peerConnection.setRemoteDescription(answer);
+    });
 
-  await peerConnection.setRemoteDescription(offer);
-  const answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(answer);
-  socket.emit('answer', answer);
-});
+    socket.on('ice-candidate', (candidate) => {
+      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    });
 
-socket.on('answer', (answer) => {
-  peerConnection.setRemoteDescription(answer);
-});
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (message) {
+        appendMessage('you', message);
+        socket.emit('chat-message', { sender: socket.id, message });
+        chatInput.value = '';
+      }
+    }
 
-socket.on('ice-candidate', (candidate) => {
-  peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-});
+    function appendMessage(user, message) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('p-2', 'my-2', 'rounded-lg', 'text-white');
 
-function sendMessage() {
-  const message = chatInput.value.trim();
-  if (message) {
-    appendMessage('you', message);
-    socket.emit('chat-message', { sender: socket.id, message });
-    chatInput.value = '';
-  }
-}
+      if (user === 'you') {
+        messageElement.classList.add('bg-blue-600', 'text-right');
+      } else {
+        messageElement.classList.add('bg-gray-600');
+      }
 
-function appendMessage(user, message) {
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('p-2', 'my-2', 'rounded-lg', 'text-white');
+      messageElement.textContent = message;
+      chatArea.appendChild(messageElement);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
 
-  if (user === 'you') {
-    messageElement.classList.add('bg-blue-600', 'text-right');
-  } else {
-    messageElement.classList.add('bg-gray-600', 'text-left');
-  }
-
-  messageElement.textContent = `${user === 'you' ? 'You' : 'Stranger'}: ${message}`;
-  chatArea.appendChild(messageElement);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-socket.on('chat-message', (data) => {
-  // Aquí comprobamos si el mensaje es del "you" o "stranger"
-  appendMessage(data.sender === socket.id ? 'you' : 'stranger', data.message);
-});
-
+    socket.on('chat-message', (data) => {
+      appendMessage(data.sender, data.message);
+    });
   </script>
 </body>
 </html>
