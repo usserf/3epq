@@ -1,5 +1,5 @@
-<!DOCTYPE html> 
-<html lang="es"> 
+<!DOCTYPE html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,39 +7,67 @@
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@webrtc/adapter@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Hakukka&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+    .video-container {
+      max-width: 180px;
+      height: 140px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .chat-container {
+      max-width: 500px;
+      height: 350px;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 15px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+    .chat-input {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans">
-  <div class="absolute top-4 left-4 z-10">
-    <a href="#" class="text-2xl text-white font-bold hover:text-blue-400 transition duration-300 ease-in-out">Hakuca.com</a>
+<body>
+
+  <div class="container text-center mt-3">
+    <h1 class="fw-bold text-primary">Hakuca.com</h1>
   </div>
 
-  <div class="flex flex-col items-center w-full h-screen p-4 space-y-4">
-    <button id="startButton" class="px-6 py-3 bg-blue-600 text-white rounded-full text-md shadow-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105">
+  <div class="container d-flex flex-column align-items-center mt-4">
+    <div class="d-flex justify-content-center gap-3">
+      <div class="video-container">
+        <video id="localVideo" autoplay muted class="w-100 h-100"></video>
+      </div>
+      <div class="video-container">
+        <video id="remoteVideo" autoplay class="w-100 h-100"></video>
+      </div>
+    </div>
+
+    <button id="startButton" class="btn btn-primary mt-3 px-4 py-2 fw-bold shadow-sm">
       Iniciar Chat
     </button>
 
-    <div class="flex w-full max-w-[600px] justify-center space-x-4">
-      <div class="w-[160px] h-[120px]">
-        <video id="localVideo" autoplay muted class="w-full h-full rounded-xl bg-transparent"></video>
-      </div>
-      <div class="w-[160px] h-[120px]">
-        <video id="remoteVideo" autoplay class="w-full h-full rounded-xl bg-transparent"></video>
-      </div>
-    </div>
-
-    <div id="chatContainer" class="w-full max-w-[500px] p-4 bg-gray-800 text-white rounded-2xl h-[320px] overflow-y-auto flex flex-col">
-      <div id="chatArea" class="flex-1 overflow-y-auto space-y-2"></div>
-      <div class="flex mt-4">
-        <input type="text" id="chatInput" class="w-full p-2 rounded-l-lg border border-gray-600 bg-gray-900 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Escribe un mensaje...">
-        <button id="sendButton" class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition duration-300">
-          Enviar
-        </button>
+    <div id="chatContainer" class="chat-container mt-4 d-flex flex-column">
+      <div id="chatArea" class="flex-grow-1 overflow-auto"></div>
+      <div class="input-group mt-3">
+        <input type="text" id="chatInput" class="form-control chat-input" placeholder="Escribe un mensaje...">
+        <button id="sendButton" class="btn btn-primary">Enviar</button>
       </div>
     </div>
   </div>
+
 </body>
+
+
 
 
 
