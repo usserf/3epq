@@ -49,25 +49,19 @@
     </div>
   </div>
 
-  <!-- Subtitles Section -->
-  <div id="subtitles" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-white p-2 rounded-md opacity-80 w-3/4 text-center"></div>
 
-  <!-- Flag Section -->
-  <div id="flag" class="absolute top-10 right-10"></div>
+
 
   <script>
     const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
     const startButton = document.getElementById('startButton');
-    const subtitles = document.getElementById('subtitles');
-    const flag = document.getElementById('flag');
-
+    
     let localStream;
     let peerConnection;
     let isChatting = false;
 
-    // Start button event
     startButton.addEventListener('click', startConnection);
 
     async function startConnection() {
@@ -136,48 +130,7 @@
     socket.on('ice-candidate', (candidate) => {
       peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
     });
-
-    // Geolocation and Flag
-    fetch('http://ip-api.com/json')
-      .then(response => response.json())
-      .then(data => {
-        console.log(data); // Ver la información obtenida
-
-        const userCountry = data.countryCode; // Obtener el código del país
-
-        // Mostrar la bandera correspondiente al código del país
-        const flagImage = document.createElement('img');
-        flagImage.src = `https://flagcdn.com/48x36/${userCountry.toLowerCase()}.png`;
-        flag.appendChild(flagImage);
-      })
-      .catch(error => console.error('Error al obtener la ubicación:', error));
-
-    // Speech Recognition for subtitles
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-US'; // Puedes cambiar el idioma según lo necesites
-    recognition.interimResults = true;
-    recognition.continuous = true;
-
-    recognition.onresult = function(event) {
-      let transcript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      subtitles.textContent = transcript;
-    };
-
-    recognition.onend = function() {
-      recognition.start();
-    };
-
-    // Start speech recognition when the user starts the chat
-    startButton.addEventListener('click', function() {
-      if (isChatting) {
-        recognition.start();
-      } else {
-        recognition.stop();
-      }
-    });
   </script>
 </body>
+</html>
 </html>
