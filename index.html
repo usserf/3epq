@@ -1,4 +1,4 @@
-<html lang="en">
+<html lang="en"> 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,27 +14,16 @@
   <header class="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-white shadow-md transition-colors duration-300">
     <a href="#" class="text-3xl font-extrabold text-black transition duration-300 hover:brightness-125">Hakoku<span class="text-blue-500">.com</span></a>
     <span class="text-sm text-gray-500 flex items-center"><span class="material-icons text-blue-500 mr-1">public</span> Connect Globally Azar</span>
-    <button id="darkModeButton" class="p-2 rounded-full text-black hover:bg-gray-300">
-      <span class="material-icons">brightness_6</span>
-    </button>
   </header>
 
   <div class="flex flex-grow mt-20 w-full">
     <div class="w-2/3 p-4 flex flex-col items-center justify-center">
       <div class="flex w-full space-x-4">
-        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md relative">
+        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
           <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
-          <div class="absolute bottom-2 right-2 text-sm bg-white opacity-75 px-2 py-1 rounded-full flex items-center space-x-1">
-            <img id="localFlag" class="w-6 h-6" src="" alt="Flag">
-            <span id="localCountry">Loading...</span>
-          </div>
         </div>
-        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md relative">
+        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
           <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
-          <div class="absolute bottom-2 right-2 text-sm bg-white opacity-75 px-2 py-1 rounded-full flex items-center space-x-1">
-            <img id="remoteFlag" class="w-6 h-6" src="" alt="Flag">
-            <span id="remoteCountry">Loading...</span>
-          </div>
         </div>
       </div>
       <button id="nextButton" class="mt-4 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform">Next</button>
@@ -61,11 +50,6 @@
     const sendMessageButton = document.getElementById('sendMessageButton');
     const chatMessages = document.getElementById('chatMessages');
 
-    const localFlagImg = document.getElementById('localFlag');
-    const remoteFlagImg = document.getElementById('remoteFlag');
-    const localCountry = document.getElementById('localCountry');
-    const remoteCountry = document.getElementById('remoteCountry');
-
     let localStream;
     let peerConnection;
     let isChatting = false;
@@ -73,11 +57,11 @@
     nextButton.addEventListener('click', startConnection);
     sendMessageButton.addEventListener('click', sendMessage);
     stopButton.addEventListener('click', stopConnection);
-    document.getElementById('darkModeButton').addEventListener('click', toggleDarkMode);
 
+    // Start the video connection
     async function startConnection() {
       if (!isChatting) {
-        clearChat();
+        clearChat(); // Clear chat when a new user is connected
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
         localStream = stream;
@@ -101,20 +85,20 @@
 
         isChatting = true;
         nextButton.textContent = "Next (Change User)";
-
-        setCountryInfo(localFlagImg, localCountry);
       } else {
         changeUserConnection();
       }
     }
 
+    // Change user connection (new user)
     function changeUserConnection() {
       stopConnection();
       startConnection();
     }
 
+    // Stop the video connection and clear chat
     function stopConnection() {
-      clearChat();
+      clearChat(); // Clear chat when stopping
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
@@ -127,6 +111,7 @@
       nextButton.textContent = "Next";
     }
 
+    // Send chat message
     function sendMessage() {
       const message = chatInput.value.trim();
       if (message) {
@@ -136,22 +121,26 @@
       }
     }
 
+    // Append message to the chat
     function appendMessage(sender, message) {
       const messageElement = document.createElement('div');
       messageElement.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
-      messageElement.innerHTML = `<strong>${sender}: </strong>${message}`;
+      messageElement.innerHTML = <strong>${sender}: </strong>${message};
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // Clear chat messages
     function clearChat() {
       chatMessages.innerHTML = '';
     }
 
+    // Listen for chat messages from other users
     socket.on('chat-message', (data) => {
       appendMessage(data.sender, data.message);
     });
 
+    // Handle incoming offers, answers, and ICE candidates
     socket.on('offer', async (offer) => {
       if (!peerConnection) {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -177,30 +166,9 @@
     });
 
     socket.on('disconnect', () => {
+      // Clear chat when the user disconnects
       clearChat();
     });
-
-    function setCountryInfo(flagImgElement, countryElement) {
-      fetch('http://ip-api.com/json')
-        .then(response => response.json())
-        .then(data => {
-          const countryCode = data.countryCode.toLowerCase();
-          const countryName = data.country;
-          flagImgElement.src = `https://flagcdn.com/w20/${countryCode}.png`;
-          countryElement.textContent = countryName;
-        });
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('bg-gray-900');
-      document.body.classList.toggle('text-white');
-      localStorage.setItem('darkMode', document.body.classList.contains('bg-gray-900'));
-    }
-
-    // Load dark mode setting on page load
-    if (localStorage.getItem('darkMode') === 'true') {
-      document.body.classList.add('bg-gray-900', 'text-white');
-    }
   </script>
 </body>
-</html>
+</html> 
