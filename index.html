@@ -154,27 +154,27 @@
       chatMessages.innerHTML = '';
     });
   </script>
+
   <script>
-   const darkModeToggle = document.getElementById('darkModeToggle');
-const darkModeIcon = document.getElementById('darkModeIcon');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const darkModeIcon = document.getElementById('darkModeIcon');
 
-darkModeToggle.addEventListener('click', () => {
-  const isDarkMode = document.body.classList.toggle('bg-gray-900');
-  document.body.classList.toggle('bg-gray-100');
-  document.body.classList.toggle('text-white');
-  document.body.classList.toggle('text-black');
-  
-  const header = document.querySelector('header');
-  header.classList.toggle('bg-gray-800', isDarkMode);
-  header.classList.toggle('bg-white', !isDarkMode);
-  
-  const toggleButton = document.querySelector('#darkModeToggle');
-  toggleButton.classList.toggle('text-white', isDarkMode);
-  toggleButton.classList.toggle('text-black', !isDarkMode);
+    darkModeToggle.addEventListener('click', () => {
+      const isDarkMode = document.body.classList.toggle('bg-gray-900');
+      document.body.classList.toggle('bg-gray-100');
+      document.body.classList.toggle('text-white');
+      document.body.classList.toggle('text-black');
+      
+      const header = document.querySelector('header');
+      header.classList.toggle('bg-gray-800', isDarkMode);
+      header.classList.toggle('bg-white', !isDarkMode);
+      
+      const toggleButton = document.querySelector('#darkModeToggle');
+      toggleButton.classList.toggle('text-white', isDarkMode);
+      toggleButton.classList.toggle('text-black', !isDarkMode);
 
-  darkModeIcon.textContent = isDarkMode ? 'light_mode' : 'dark_mode';
-});
-
+      darkModeIcon.textContent = isDarkMode ? 'light_mode' : 'dark_mode';
+    });
   </script>
 </body>
 </html>
