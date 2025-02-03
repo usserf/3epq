@@ -1,47 +1,58 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hakuca Video Chat</title>
+  <title>Hakoku Video Chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@webrtc/adapter@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
-<body class="bg-gray-100 font-sans flex flex-col items-center justify-between h-screen">
+<body class="bg-gray-100 text-black flex h-screen transition-colors duration-300">
 
-  <!-- Header Section -->
-  <div class="w-full bg-white shadow-md p-4 flex justify-between items-center fixed top-0 left-0 z-10">
-    <img src="icon.png" alt="Hakuca Logo" class="h-12">
-  </div>
+  <header class="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-white shadow-md transition-colors duration-300">
+    <a href="#" class="text-3xl font-extrabold text-black transition duration-300 hover:brightness-125">Hakoku<span class="text-blue-500">.com</span></a>
+    <span class="text-sm text-gray-500 flex items-center"><span class="material-icons text-blue-500 mr-1">public</span> Connect Globally, Instantly</span>
+    <button id="darkModeToggle" class="text-2xl text-gray-600 hover:text-gray-900"><span class="material-icons">dark_mode</span></button>
+  </header>
 
-  <!-- Chat Section -->
-  <div id="chatContainer" class="flex flex-col items-center w-full mt-20">
-    <div id="chatMessages" class="w-full max-w-md bg-white p-4 rounded-lg shadow-md space-y-4 overflow-auto h-80">
-      <!-- Chat messages will be appended here -->
+  <div class="flex flex-grow mt-20 w-full">
+    <div class="w-2/3 p-4 flex flex-col items-center justify-center">
+      <div class="flex w-full space-x-4">
+        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+          <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
+        </div>
+        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+          <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
+        </div>
+      </div>
+      <button id="startButton" class="mt-4 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform">Start Chat</button>
     </div>
 
-    <div class="w-full max-w-md mt-4 flex items-center space-x-4">
-      <input id="chatInput" type="text" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Type a message...">
-      <button id="sendMessageButton" class="px-4 py-2 bg-blue-500 text-white rounded-lg">Send</button>
-    </div>
-  </div>
-
-  <!-- Video Section -->
-  <div class="flex flex-row items-center justify-center space-x-4 p-4 w-full mt-10">
-    <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
-      <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
-    </div>
-
-    <!-- Start Button in the middle -->
-    <button id="startButton" class="w-32 py-2 bg-blue-600 text-white rounded-lg">Start Chat</button>
-
-    <div class="w-1/2 h-64 bg-gray-300 rounded-lg overflow-hidden shadow-md">
-      <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
+    <div class="w-1/3 bg-gray-200 p-4 flex flex-col">
+      <h2 class="text-xl font-semibold mb-2">Chat</h2>
+      <div id="chatMessages" class="flex-1 bg-gray-100 p-4 rounded-lg overflow-auto h-80"></div>
+      <div class="mt-4 flex space-x-2">
+        <input id="chatInput" type="text" class="flex-1 p-2 rounded-lg bg-gray-50 text-black placeholder-gray-400" placeholder="Type a message...">
+        <button id="sendMessageButton" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">Send</button>
+      </div>
     </div>
   </div>
+
+  <script>
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('bg-gray-900');
+      document.body.classList.toggle('bg-gray-100');
+      document.body.classList.toggle('text-white');
+      document.body.classList.toggle('text-black');
+      document.querySelector('header').classList.toggle('bg-gray-800');
+      document.querySelector('header').classList.toggle('bg-white');
+      document.querySelector('#darkModeToggle').classList.toggle('text-white');
+      document.querySelector('#darkModeToggle').classList.toggle('text-black');
+    });
+  </script>
 
   <script>
     const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
