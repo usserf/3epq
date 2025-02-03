@@ -8,9 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@webrtc/adapter@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker/2.0.0/js/config.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker/2.0.0/js/util.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/emoji-picker/2.0.0/js/emoji-picker.min.js"></script>
 </head>
 <body class="bg-gray-100 text-black flex h-screen transition-colors duration-300">
 
@@ -38,14 +35,8 @@
       <div id="chatMessages" class="flex-1 bg-gray-100 p-4 rounded-lg overflow-auto h-80"></div>
       <div class="mt-4 flex space-x-2">
         <input id="chatInput" type="text" class="flex-1 p-2 rounded-lg bg-gray-50 text-black placeholder-gray-400" placeholder="Type a message...">
-        <button id="emojiButton" class="px-4 py-2 bg-gray-300 text-black rounded-lg hover:bg-gray-400">
-          <span class="material-icons">emoji_emotions</span>
-        </button>
-        <button id="sendMessageButton" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">
-          <span class="material-icons">send</span>
-        </button>
+        <button id="sendMessageButton" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">Send</button>
       </div>
-      <div id="emojiPicker" class="hidden"></div>
     </div>
   </div>
 
@@ -58,8 +49,6 @@
     const chatInput = document.getElementById('chatInput');
     const sendMessageButton = document.getElementById('sendMessageButton');
     const chatMessages = document.getElementById('chatMessages');
-    const emojiButton = document.getElementById('emojiButton');
-    const emojiPicker = document.getElementById('emojiPicker');
 
     let localStream;
     let peerConnection;
@@ -68,18 +57,6 @@
     nextButton.addEventListener('click', startConnection);
     sendMessageButton.addEventListener('click', sendMessage);
     stopButton.addEventListener('click', stopConnection);
-    emojiButton.addEventListener('click', toggleEmojiPicker);
-
-    // Initialize emoji picker
-    const picker = new EmojiButton();
-    picker.on('emoji', (emoji) => {
-      chatInput.value += emoji;
-      chatInput.focus();
-    });
-
-    function toggleEmojiPicker() {
-      picker.togglePicker(chatInput);
-    }
 
     // Start the video connection
     async function startConnection() {
@@ -148,7 +125,7 @@
     function appendMessage(sender, message) {
       const messageElement = document.createElement('div');
       messageElement.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
-      messageElement.innerHTML = `<strong>${sender}: </strong>${message}`;
+      messageElement.innerHTML = ;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
