@@ -1,4 +1,4 @@
- <html lang="en"> 
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -125,7 +125,7 @@
     function appendMessage(sender, message) {
       const messageElement = document.createElement('div');
       messageElement.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
-      messageElement.innerHTML = <strong>${sender}: </strong>${message};
+      messageElement.innerHTML = `<strong>${sender}: </strong>${message}`;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
