@@ -49,93 +49,39 @@
   </div>
 
   <script>
-    const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
+<script>
+  const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
   const localVideo = document.getElementById('localVideo');
   const remoteVideo = document.getElementById('remoteVideo');
-  const nextButton = document.getElementById('nextButton');
-  const stopButton = document.getElementById('stopButton');
-  const chatInput = document.getElementById('chatInput');
-  const sendMessageButton = document.getElementById('sendMessageButton');
-  const chatMessages = document.getElementById('chatMessages');
   const remoteVideoContainer = document.querySelector('.remote-video-container');
 
   let localStream;
   let peerConnection;
   let isChatting = false;
 
-  nextButton.addEventListener('click', startConnection);
-  sendMessageButton.addEventListener('click', sendMessage);
-  stopButton.addEventListener('click', stopConnection);
-
   async function startConnection() {
-    if (!isChatting) {
-      clearChat();
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localVideo.srcObject = stream;
-      localStream = stream;
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = stream;
+    localStream = stream;
 
-      peerConnection = new RTCPeerConnection();
-      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    peerConnection = new RTCPeerConnection();
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      socket.emit('offer', offer);
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit('offer', offer);
 
-      peerConnection.onicecandidate = (event) => {
-        if (event.candidate) {
-          socket.emit('ice-candidate', event.candidate);
-        }
-      };
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit('ice-candidate', event.candidate);
+      }
+    };
 
-      peerConnection.ontrack = (event) => {
-        remoteVideo.srcObject = event.streams[0];
-      };
+    peerConnection.ontrack = (event) => {
+      remoteVideo.srcObject = event.streams[0];
+    };
 
-      isChatting = true;
-      nextButton.textContent = "Next (Change User)";
-    } else {
-      changeUserConnection();
-    }
-  }
-
-  function changeUserConnection() {
-    stopConnection();
-    startConnection();
-  }
-
-  function stopConnection() {
-    clearChat();
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-    }
-    if (peerConnection) {
-      peerConnection.close();
-    }
-    localVideo.srcObject = null;
-    remoteVideo.srcObject = null;
-    isChatting = false;
-    nextButton.textContent = "Next";
-  }
-
-  function sendMessage() {
-    const message = chatInput.value.trim();
-    if (message) {
-      socket.emit('chat-message', { sender: "You", message });
-      chatInput.value = '';
-      appendMessage("You", message);
-    }
-  }
-
-  function appendMessage(sender, message) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
-    messageElement.innerHTML = `<strong>${sender}: </strong>${message}`;
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  function clearChat() {
-    chatMessages.innerHTML = '';
+    isChatting = true;
   }
 
   socket.on('chat-message', (data) => {
@@ -143,14 +89,12 @@
   });
 
   socket.on('offer', async (offer) => {
-    if (!peerConnection) {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localVideo.srcObject = stream;
-      localStream = stream;
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = stream;
+    localStream = stream;
 
-      peerConnection = new RTCPeerConnection();
-      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-    }
+    peerConnection = new RTCPeerConnection();
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
     await peerConnection.setRemoteDescription(offer);
     const answer = await peerConnection.createAnswer();
@@ -166,9 +110,17 @@
     peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
   });
 
-  socket.on('disconnect', () => {
-    clearChat();
-  });
+  function appendMessage(sender, message) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
+    messageElement.innerHTML = `<strong>${sender}: </strong>${message}`;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function clearChat() {
+    chatMessages.innerHTML = '';
+  }
 
   // Geolocalización para mostrar el país
   function getCountryFromLocation() {
@@ -193,7 +145,7 @@
 
   socket.on('country', (country) => {
     const countryFlag = document.createElement('img');
-    countryFlag.src = `https://www.countryflags.io/${country}/shiny/64.png`;
+    countryFlag.src = `https://www.countryflags.io/${country}/shiny/64.png`; // Asegúrate de usar https
     countryFlag.alt = country;
     countryFlag.style.position = 'absolute';
     countryFlag.style.bottom = '10px';
@@ -211,6 +163,7 @@
     remoteVideoContainer.appendChild(countryFlag);
     remoteVideoContainer.appendChild(countryText);
   });
+</script>
   </script>
 </body>
 </html>
