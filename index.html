@@ -11,12 +11,11 @@
 </head>
 <body class="bg-gray-100 text-black flex h-screen transition-colors duration-300">
 
-  <header class="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-white shadow-md transition-colors duration-300">
+ <header class="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-white shadow-md transition-colors duration-300">
     <a href="#" class="text-3xl font-extrabold text-black transition duration-300 hover:brightness-125">Hakoku<span class="text-blue-500">.com</span></a>
-    <span class="text-sm text-gray-500 flex items-center"><span class="material-icons text-blue-500 mr-1">public</span> Connect Globally, Instantly</span>
-    <button id="darkModeToggle" class="text-2xl text-gray-600 hover:text-gray-900"><span class="material-icons">dark_mode</span></button>
+    <span class="text-sm text-gray-500 flex items-center"><span class="material-icons text-blue-500 mr-1">public</span> Connect Globally Azar</span>
+    <button id="darkModeToggle" class="text-2xl text-gray-600 hover:text-gray-900"><span class="material-icons" id="darkModeIcon">dark_mode</span></button>
   </header>
-
   <div class="flex flex-grow mt-20 w-full">
     <div class="w-2/3 p-4 flex flex-col items-center justify-center">
       <div class="flex w-full space-x-4">
@@ -39,20 +38,6 @@
       </div>
     </div>
   </div>
-
-  <script>
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    darkModeToggle.addEventListener('click', () => {
-      document.body.classList.toggle('bg-gray-900');
-      document.body.classList.toggle('bg-gray-100');
-      document.body.classList.toggle('text-white');
-      document.body.classList.toggle('text-black');
-      document.querySelector('header').classList.toggle('bg-gray-800');
-      document.querySelector('header').classList.toggle('bg-white');
-      document.querySelector('#darkModeToggle').classList.toggle('text-white');
-      document.querySelector('#darkModeToggle').classList.toggle('text-black');
-    });
-  </script>
 
   <script>
     const socket = io("https://b8433b60-add7-46c3-a687-112a4bae5c60-00-1c4zk9hm3sqa5.kirk.replit.dev");
@@ -168,6 +153,28 @@
       // Clear chat when the user disconnects
       chatMessages.innerHTML = '';
     });
+  </script>
+  <script>
+   const darkModeToggle = document.getElementById('darkModeToggle');
+const darkModeIcon = document.getElementById('darkModeIcon');
+
+darkModeToggle.addEventListener('click', () => {
+  const isDarkMode = document.body.classList.toggle('bg-gray-900');
+  document.body.classList.toggle('bg-gray-100');
+  document.body.classList.toggle('text-white');
+  document.body.classList.toggle('text-black');
+  
+  const header = document.querySelector('header');
+  header.classList.toggle('bg-gray-800', isDarkMode);
+  header.classList.toggle('bg-white', !isDarkMode);
+  
+  const toggleButton = document.querySelector('#darkModeToggle');
+  toggleButton.classList.toggle('text-white', isDarkMode);
+  toggleButton.classList.toggle('text-black', !isDarkMode);
+
+  darkModeIcon.textContent = isDarkMode ? 'light_mode' : 'dark_mode';
+});
+
   </script>
 </body>
 </html>
