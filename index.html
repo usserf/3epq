@@ -46,7 +46,7 @@
   </div>
 
   <script>
-    const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
+const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 const nextButton = document.getElementById('nextButton');
@@ -174,6 +174,7 @@ socket.on('answer', (data) => {
 socket.on('ice-candidate', (data) => {
   peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
 });
+   
   </script>
 </body>
 
