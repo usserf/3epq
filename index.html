@@ -58,7 +58,6 @@
     let localStream;
     let peerConnection;
     let isChatting = false;
-    let currentRoom = null;
 
     nextButton.addEventListener('click', startConnection);
     sendMessageButton.addEventListener('click', sendMessage);
@@ -68,35 +67,30 @@
     async function startConnection() {
       if (!isChatting) {
         clearChat(); // Clear chat when a new user is connected
-        const roomId = prompt('Enter a room ID to connect');
-        if (roomId) {
-          currentRoom = roomId;
-          socket.emit('join-room', roomId);
 
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          localVideo.srcObject = stream;
-          localStream = stream;
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localStream = stream;
 
-          peerConnection = new RTCPeerConnection();
-          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-          const offer = await peerConnection.createOffer();
-          await peerConnection.setLocalDescription(offer);
-          socket.emit('offer', offer);
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', offer);
 
-          peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-              socket.emit('ice-candidate', event.candidate);
-            }
-          };
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit('ice-candidate', event.candidate);
+          }
+        };
 
-          peerConnection.ontrack = (event) => {
-            remoteVideo.srcObject = event.streams[0];
-          };
+        peerConnection.ontrack = (event) => {
+          remoteVideo.srcObject = event.streams[0];
+        };
 
-          isChatting = true;
-          nextButton.textContent = "Next (Change User)";
-        }
+        isChatting = true;
+        nextButton.textContent = "Next (Change User)";
       } else {
         changeUserConnection();
       }
@@ -149,10 +143,7 @@
 
     // Listen for chat messages from other users
     socket.on('chat-message', (data) => {
-      if (data.room === currentRoom) {
-        const sender = data.sender === socket.id ? 'You' : 'Stranger';
-        appendMessage(sender, data.message);
-      }
+      appendMessage(data.sender, data.message);
     });
 
     // Handle incoming offers, answers, and ICE candidates
