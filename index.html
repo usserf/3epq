@@ -46,7 +46,7 @@
   </div>
 
   <script>
-    const socket = io("https://usserf.github.io");
+    const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
     const nextButton = document.getElementById('nextButton');
@@ -67,7 +67,6 @@
     async function startConnection() {
       if (!isChatting) {
         clearChat(); // Clear chat when a new user is connected
-
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
         localStream = stream;
@@ -143,7 +142,9 @@
 
     // Listen for chat messages from other users
     socket.on('chat-message', (data) => {
-      appendMessage(data.sender, data.message);
+      // Check if the sender is the current user
+      const sender = data.sender === socket.id ? 'You' : 'Stranger';
+      appendMessage(sender, data.message);
     });
 
     // Handle incoming offers, answers, and ICE candidates
@@ -172,9 +173,11 @@
     });
 
     socket.on('disconnect', () => {
+      // Clear chat when the user disconnects
       clearChat();
     });
   </script>
 </body>
 
 </html>
+
