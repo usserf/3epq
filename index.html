@@ -140,12 +140,12 @@
       chatMessages.innerHTML = '';
     }
 
-    // Listen for chat messages from other users
+       // Escuchar mensajes de chat solo del par emparejado
     socket.on('chat-message', (data) => {
-      // Check if the sender is the current user
       const sender = data.sender === socket.id ? 'You' : 'Stranger';
       appendMessage(sender, data.message);
     });
+
 
     // Handle incoming offers, answers, and ICE candidates
     socket.on('offer', async (offer) => {
