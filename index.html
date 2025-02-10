@@ -48,82 +48,131 @@
   </div>
 
   <script>
-    const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
+const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
 
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    const nextButton = document.getElementById('nextButton');
-    const stopButton = document.getElementById('stopButton');
-    const chatInput = document.getElementById('chatInput');
-    const sendMessageButton = document.getElementById('sendMessageButton');
-    const chatMessages = document.getElementById('chatMessages');
+const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+const nextButton = document.getElementById('nextButton');
+const stopButton = document.getElementById('stopButton');
+const chatInput = document.getElementById('chatInput');
+const sendMessageButton = document.getElementById('sendMessageButton');
+const chatMessages = document.getElementById('chatMessages');
 
-    let localStream;
-    let peerConnection;
-    let partnerId = null;
-    let isChatting = false;
+let localStream;
+let peerConnection;
+let partnerId = null;
+let isChatting = false;
 
-    nextButton.addEventListener('click', startConnection);
-    sendMessageButton.addEventListener('click', sendMessage);
-    stopButton.addEventListener('click', stopConnection);
+const peerConfig = {
+  iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+};
 
-    async function startConnection() {
-      stopConnection();
+nextButton.addEventListener('click', startConnection);
+sendMessageButton.addEventListener('click', sendMessage);
+stopButton.addEventListener('click', stopConnection);
 
-      clearChat();
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      localVideo.srcObject = localStream;
+async function startConnection() {
+  stopConnection();
+  clearChat();
 
-      socket.emit('find-partner');
+  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  localVideo.srcObject = localStream;
+
+  socket.emit('find-partner');
+}
+
+function stopConnection() {
+  clearChat();
+  if (localStream) localStream.getTracks().forEach(track => track.stop());
+  if (peerConnection) peerConnection.close();
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+  isChatting = false;
+  partnerId = null;
+  socket.emit('leave-room');
+}
+
+function sendMessage() {
+  if (!partnerId || !isChatting || !localStream) return;
+  const message = chatInput.value.trim();
+  if (message) {
+    socket.emit('chat-message', { partnerId, message });
+    appendMessage("You", message);
+    chatInput.value = '';
+  }
+}
+
+function appendMessage(sender, message) {
+  const msgElem = document.createElement('div');
+  msgElem.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
+  msgElem.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  chatMessages.appendChild(msgElem);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function clearChat() {
+  chatMessages.innerHTML = '';
+}
+
+socket.on('partner-found', (id) => {
+  partnerId = id;
+  isChatting = true;
+  initPeerConnection();
+});
+
+socket.on('chat-message', (data) => {
+  if (data.partnerId === socket.id) appendMessage("Stranger", data.message);
+});
+
+socket.on('partner-disconnected', () => {
+  stopConnection();
+  alert('Your partner has disconnected. Searching for a new one...');
+  startConnection();
+});
+
+function initPeerConnection() {
+  peerConnection = new RTCPeerConnection(peerConfig);
+  localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+  peerConnection.ontrack = event => {
+    remoteVideo.srcObject = event.streams[0];
+  };
+
+  peerConnection.onicecandidate = event => {
+    if (event.candidate) {
+      socket.emit('ice-candidate', { candidate: event.candidate, partnerId });
     }
+  };
 
-    function stopConnection() {
-      clearChat();
-      if (localStream) localStream.getTracks().forEach(track => track.stop());
-      if (peerConnection) peerConnection.close();
-      localVideo.srcObject = null;
-      remoteVideo.srcObject = null;
-      isChatting = false;
-      partnerId = null;
-      socket.emit('leave-room');
-    }
-
-    function sendMessage() {
-      if (!partnerId || !isChatting || !localStream) return;
-      const message = chatInput.value.trim();
-      if (message) {
-        socket.emit('chat-message', { partnerId, message });
-        appendMessage("You", message);
-        chatInput.value = '';
-      }
-    }
-
-    function appendMessage(sender, message) {
-      const msgElem = document.createElement('div');
-      msgElem.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
-      msgElem.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatMessages.appendChild(msgElem);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function clearChat() {
-      chatMessages.innerHTML = '';
-    }
-
-    socket.on('partner-found', (id) => {
-      partnerId = id;
-      isChatting = true;
+  peerConnection.createOffer()
+    .then(offer => peerConnection.setLocalDescription(offer))
+    .then(() => {
+      socket.emit('offer', { offer: peerConnection.localDescription, partnerId });
     });
+}
 
-    socket.on('chat-message', (data) => {
-      if (data.partnerId === socket.id) appendMessage("Stranger", data.message);
-    });
+socket.on('offer', (data) => {
+  if (data.partnerId === socket.id) {
+    peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+    peerConnection.createAnswer()
+      .then(answer => peerConnection.setLocalDescription(answer))
+      .then(() => {
+        socket.emit('answer', { answer: peerConnection.localDescription, partnerId: data.partnerId });
+      });
+  }
+});
 
-    socket.on('partner-disconnected', () => {
-      stopConnection();
-      alert('Your partner has disconnected. Searching for a new one...');
-      startConnection();
-    });
+socket.on('answer', (data) => {
+  if (data.partnerId === socket.id) {
+    peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+  }
+});
+
+socket.on('ice-candidate', (data) => {
+  if (data.partnerId === socket.id) {
+    peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+  }
+});
   </script>
 </body>
 
