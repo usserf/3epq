@@ -46,7 +46,7 @@
   </div>
 
   <script>
-    const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
+    const socket = io("https://usserf.github.io");
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
     const nextButton = document.getElementById('nextButton');
@@ -58,6 +58,7 @@
     let localStream;
     let peerConnection;
     let isChatting = false;
+    let currentRoom = null;
 
     nextButton.addEventListener('click', startConnection);
     sendMessageButton.addEventListener('click', sendMessage);
@@ -67,29 +68,35 @@
     async function startConnection() {
       if (!isChatting) {
         clearChat(); // Clear chat when a new user is connected
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localStream = stream;
+        const roomId = prompt('Enter a room ID to connect');
+        if (roomId) {
+          currentRoom = roomId;
+          socket.emit('join-room', roomId);
 
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          localVideo.srcObject = stream;
+          localStream = stream;
 
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        socket.emit('offer', offer);
+          peerConnection = new RTCPeerConnection();
+          localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-        peerConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            socket.emit('ice-candidate', event.candidate);
-          }
-        };
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          socket.emit('offer', offer);
 
-        peerConnection.ontrack = (event) => {
-          remoteVideo.srcObject = event.streams[0];
-        };
+          peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+              socket.emit('ice-candidate', event.candidate);
+            }
+          };
 
-        isChatting = true;
-        nextButton.textContent = "Next (Change User)";
+          peerConnection.ontrack = (event) => {
+            remoteVideo.srcObject = event.streams[0];
+          };
+
+          isChatting = true;
+          nextButton.textContent = "Next (Change User)";
+        }
       } else {
         changeUserConnection();
       }
@@ -142,9 +149,10 @@
 
     // Listen for chat messages from other users
     socket.on('chat-message', (data) => {
-      // Check if the sender is the current user
-      const sender = data.sender === socket.id ? 'You' : 'Stranger';
-      appendMessage(sender, data.message);
+      if (data.room === currentRoom) {
+        const sender = data.sender === socket.id ? 'You' : 'Stranger';
+        appendMessage(sender, data.message);
+      }
     });
 
     // Handle incoming offers, answers, and ICE candidates
@@ -173,7 +181,6 @@
     });
 
     socket.on('disconnect', () => {
-      // Clear chat when the user disconnects
       clearChat();
     });
   </script>
