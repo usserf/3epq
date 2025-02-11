@@ -10,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@webrtc/adapter@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/simple-peer@latest"></script>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script src="https://cdn.jsdelivr.net/npm/emojihub"></script>
 </head>
 
 <body class="bg-gray-100 text-black flex h-screen transition-colors duration-300">
@@ -25,8 +26,8 @@
         <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
           <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
         </div>
-        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
-          <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
+        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md bg-gray-500">
+          <video id="remoteVideo" autoplay class="w-full h-full object-cover opacity-0 transition-opacity duration-500"></video>
         </div>
       </div>
       <button id="nextButton" class="mt-4 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform">Next</button>
@@ -35,11 +36,14 @@
 
     <div class="w-1/3 bg-gray-200 p-4 flex flex-col">
       <h2 class="text-xl font-semibold mb-2">Chat</h2>
-      <div id="chatMessages" class="flex-1 bg-gray-100 p-4 rounded-lg overflow-auto h-80"></div>
+      <div id="chatMessages" class="flex-1 bg-gray-100 p-4 rounded-lg overflow-auto h-80 space-y-2"></div>
       <div class="mt-4 flex space-x-2">
         <input id="chatInput" type="text" class="flex-1 p-2 rounded-lg bg-gray-50 text-black placeholder-gray-400" placeholder="Type a message...">
         <button id="sendMessageButton" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">
           <span class="material-icons">send</span>
+        </button>
+        <button id="emojiButton" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-400">
+          <span class="material-icons">emoji_emotions</span>
         </button>
       </div>
     </div>
@@ -54,6 +58,7 @@
     const chatInput = document.getElementById('chatInput');
     const sendMessageButton = document.getElementById('sendMessageButton');
     const chatMessages = document.getElementById('chatMessages');
+    const emojiButton = document.getElementById('emojiButton');
 
     let localStream;
     let peerConnection;
@@ -62,11 +67,11 @@
     nextButton.addEventListener('click', startConnection);
     sendMessageButton.addEventListener('click', sendMessage);
     stopButton.addEventListener('click', stopConnection);
+    emojiButton.addEventListener('click', sendEmoji);
 
-    // Start the video connection
     async function startConnection() {
       if (!isChatting) {
-        clearChat(); // Clear chat when a new user is connected
+        clearChat(); 
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = stream;
         localStream = stream;
@@ -86,6 +91,7 @@
 
         peerConnection.ontrack = (event) => {
           remoteVideo.srcObject = event.streams[0];
+          remoteVideo.classList.remove('opacity-0');
         };
 
         isChatting = true;
@@ -95,15 +101,13 @@
       }
     }
 
-    // Change user connection (new user)
     function changeUserConnection() {
       stopConnection();
       startConnection();
     }
 
-    // Stop the video connection and clear chat
     function stopConnection() {
-      clearChat(); // Clear chat when stopping
+      clearChat(); 
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
@@ -116,7 +120,6 @@
       nextButton.textContent = "Next";
     }
 
-    // Send chat message
     function sendMessage() {
       const message = chatInput.value.trim();
       if (message) {
@@ -126,7 +129,6 @@
       }
     }
 
-    // Append message to the chat
     function appendMessage(sender, message) {
       const messageElement = document.createElement('div');
       messageElement.classList.add('p-2', 'border-b', 'border-gray-300', 'rounded-lg');
@@ -135,19 +137,15 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Clear chat messages
     function clearChat() {
       chatMessages.innerHTML = '';
     }
 
-       // Escuchar mensajes de chat solo del par emparejado
     socket.on('chat-message', (data) => {
       const sender = data.sender === socket.id ? 'You' : 'Stranger';
       appendMessage(sender, data.message);
     });
 
-
-    // Handle incoming offers, answers, and ICE candidates
     socket.on('offer', async (offer) => {
       if (!peerConnection) {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -173,9 +171,14 @@
     });
 
     socket.on('disconnect', () => {
-      // Clear chat when the user disconnects
       clearChat();
     });
+
+    async function sendEmoji() {
+      const emoji = await emojihub.random();
+      socket.emit('chat-message', { sender: "You", message: emoji.emoji });
+      appendMessage("You", emoji.emoji);
+    }
   </script>
 </body>
 
