@@ -189,6 +189,23 @@
       // Clear chat when the user disconnects
       clearChat();
     });
+    // Dropdown menu toggle functionality
+  const reportButton = document.querySelector('button');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+  
+  reportButton.addEventListener('click', () => {
+    dropdownMenu.classList.toggle('hidden');
+  });
+
+  // Report User - desconectar al usuario
+  const reportUserBtn = document.getElementById('reportUserBtn');
+  const socket = io();
+
+  reportUserBtn.addEventListener('click', () => {
+    socket.emit('report-user'); // Emitir evento para reportar al usuario
+    alert('Usuario reportado. El usuario será desconectado.');
+    socket.disconnect(); // Desconectar al usuario
+  });
   </script>
 </body>
 
