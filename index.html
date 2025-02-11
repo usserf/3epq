@@ -12,38 +12,189 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 
-<body class="bg-gray-100 text-black flex h-screen transition-colors duration-300">
+<body class="bg-gray-900 text-white flex flex-col h-screen">
 
-  <header class="fixed top-0 left-0 w-full flex justify-between items-center p-4 bg-white shadow-md transition-colors duration-300">
-    <a href="#" class="text-3xl font-extrabold text-black transition duration-300 hover:brightness-125">Hakoku<span class="text-blue-500">.com</span></a>
-    <span class="text-sm text-gray-500 flex items-center"><span class="material-icons text-blue-500 mr-1">public</span> Connect Globally Azar</span>
+  <header class="fixed top-0 left-0 w-full p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg flex justify-between items-center z-10">
+    <a href="#" class="text-3xl font-extrabold hover:brightness-125 transition duration-300">Hakoku<span class="text-yellow-400">.com</span></a>
+    <span class="text-sm flex items-center"><span class="material-icons text-yellow-400 mr-1">public</span> Connect Globally Azar</span>
   </header>
 
-  <div class="flex flex-grow mt-20 w-full">
-    <div class="w-2/3 p-4 flex flex-col items-center justify-center">
-      <div class="flex w-full space-x-4">
-        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
-          <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
-        </div>
-        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
-          <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
-        </div>
+  <div class="flex-grow mt-24 flex justify-center items-center">
+    <div class="flex w-full max-w-6xl space-x-6 p-4">
+      
+      <!-- Video containers -->
+      <div class="flex-1 bg-gray-800 rounded-lg overflow-hidden shadow-2xl relative">
+        <video id="localVideo" autoplay muted class="w-full h-full object-cover rounded-lg shadow-lg border-4 border-yellow-500"></video>
       </div>
-      <button id="nextButton" class="mt-4 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform">Next</button>
-      <button id="stopButton" class="mt-4 px-6 py-3 bg-red-600 text-white rounded-lg hover:scale-105 transition-transform">Stop</button>
+      
+      <div class="flex-1 bg-gray-800 rounded-lg overflow-hidden shadow-2xl relative">
+        <video id="remoteVideo" autoplay class="w-full h-full object-cover rounded-lg shadow-lg border-4 border-yellow-500"></video>
+      </div>
+
     </div>
 
-    <div class="w-1/3 bg-gray-200 p-4 flex flex-col">
-      <h2 class="text-xl font-semibold mb-2">Chat</h2>
-      <div id="chatMessages" class="flex-1 bg-gray-100 p-4 rounded-lg overflow-auto h-80"></div>
-      <div class="mt-4 flex space-x-2">
-        <input id="chatInput" type="text" class="flex-1 p-2 rounded-lg bg-gray-50 text-black placeholder-gray-400" placeholder="Type a message...">
-        <button id="sendMessageButton" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">
-          <span class="material-icons">send</span>
-        </button>
-      </div>
+    <!-- Buttons for interaction -->
+    <div class="flex justify-center space-x-4 mt-8">
+      <button id="nextButton" class="px-6 py-3 bg-gradient-to-r from-green-400 to-teal-500 text-white font-semibold rounded-lg hover:scale-105 transition-all shadow-md">
+        Next
+      </button>
+      <button id="stopButton" class="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:scale-105 transition-all shadow-md">
+        Stop
+      </button>
     </div>
   </div>
+
+  <!-- Chat Panel -->
+  <div class="fixed bottom-0 left-0 w-full bg-gray-800 p-4 shadow-lg rounded-t-lg">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-white">Chat</h2>
+    </div>
+    <div id="chatMessages" class="bg-gray-700 p-4 rounded-lg h-60 overflow-auto shadow-inner mb-4">
+      <!-- Chat messages will appear here -->
+    </div>
+    <div class="flex">
+      <input id="chatInput" type="text" class="flex-1 p-3 rounded-lg bg-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500" placeholder="Type a message...">
+      <button id="sendMessageButton" class="p-3 bg-blue-500 text-white rounded-lg ml-2 hover:bg-blue-600 focus:outline-none">
+        <span class="material-icons">send</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const nextButton = document.getElementById('nextButton');
+    const stopButton = document.getElementById('stopButton');
+    const chatInput = document.getElementById('chatInput');
+    const sendMessageButton = document.getElementById('sendMessageButton');
+    const chatMessages = document.getElementById('chatMessages');
+
+    let localStream;
+    let peerConnection;
+    let isChatting = false;
+
+    nextButton.addEventListener('click', startConnection);
+    sendMessageButton.addEventListener('click', sendMessage);
+    stopButton.addEventListener('click', stopConnection);
+
+    // Start the video connection
+    async function startConnection() {
+      if (!isChatting) {
+        clearChat(); // Clear chat when a new user is connected
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localStream = stream;
+
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('offer', offer);
+
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit('ice-candidate', event.candidate);
+          }
+        };
+
+        peerConnection.ontrack = (event) => {
+          remoteVideo.srcObject = event.streams[0];
+        };
+
+        isChatting = true;
+        nextButton.textContent = "Next (Change User)";
+      } else {
+        changeUserConnection();
+      }
+    }
+
+    // Change user connection (new user)
+    function changeUserConnection() {
+      stopConnection();
+      startConnection();
+    }
+
+    // Stop the video connection and clear chat
+    function stopConnection() {
+      clearChat(); // Clear chat when stopping
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      if (peerConnection) {
+        peerConnection.close();
+      }
+      localVideo.srcObject = null;
+      remoteVideo.srcObject = null;
+      isChatting = false;
+      nextButton.textContent = "Next";
+    }
+
+    // Send chat message
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (message) {
+        socket.emit('chat-message', { sender: "You", message });
+        chatInput.value = '';
+        appendMessage("You", message);
+      }
+    }
+
+    // Append message to the chat
+    function appendMessage(sender, message) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('p-2', 'border-b', 'border-gray-600', 'rounded-lg');
+      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Clear chat messages
+    function clearChat() {
+      chatMessages.innerHTML = '';
+    }
+
+    // Listen for chat messages from other users
+    socket.on('chat-message', (data) => {
+      // Check if the sender is the current user
+      const sender = data.sender === socket.id ? 'You' : 'Stranger';
+      appendMessage(sender, data.message);
+    });
+
+    // Handle incoming offers, answers, and ICE candidates
+    socket.on('offer', async (offer) => {
+      if (!peerConnection) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localVideo.srcObject = stream;
+        localStream = stream;
+
+        peerConnection = new RTCPeerConnection();
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+      }
+
+      await peerConnection.setRemoteDescription(offer);
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('answer', answer);
+    });
+
+    socket.on('answer', (answer) => {
+      peerConnection.setRemoteDescription(answer);
+    });
+
+    socket.on('ice-candidate', (candidate) => {
+      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+
+    socket.on('disconnect', () => {
+      // Clear chat when the user disconnects
+      clearChat();
+    });
+  </script>
+</body>
+
+</html>
 
   <script>
     const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
