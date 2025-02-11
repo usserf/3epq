@@ -22,11 +22,25 @@
   <div class="flex flex-grow mt-20 w-full">
     <div class="w-2/3 p-4 flex flex-col items-center justify-center">
       <div class="flex w-full space-x-4">
-        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md relative">
           <video id="localVideo" autoplay muted class="w-full h-full object-cover"></video>
         </div>
-        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md">
+        <div class="w-1/2 h-80 bg-gray-300 rounded-lg overflow-hidden shadow-md relative">
           <video id="remoteVideo" autoplay class="w-full h-full object-cover"></video>
+          
+          <!-- Report Dropdown Button in the top-right corner -->
+          <div class="absolute top-4 right-4">
+            <button class="text-gray-700 hover:bg-gray-200 focus:outline-none p-2 rounded-full">
+              <span class="material-icons text-sm">report_problem</span>
+            </button>
+            <div class="absolute right-0 hidden mt-2 bg-white rounded-lg shadow-lg w-48 text-black z-10 dropdown-menu">
+              <ul>
+                <li><a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Report Bug</a></li>
+                <li><a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Report User</a></li>
+                <li><a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Report Feedback</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
       <button id="nextButton" class="mt-4 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform">Next</button>
@@ -45,6 +59,15 @@
     </div>
   </div>
 
+  <script>
+    // Dropdown menu toggle functionality
+    const reportButton = document.querySelector('button');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    
+    reportButton.addEventListener('click', () => {
+      dropdownMenu.classList.toggle('hidden');
+    });
+  </script>
   <script>
     const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
     const localVideo = document.getElementById('localVideo');
@@ -181,138 +204,3 @@
 
 </html>
 
-  <script>
-    const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideo = document.getElementById('remoteVideo');
-    const nextButton = document.getElementById('nextButton');
-    const stopButton = document.getElementById('stopButton');
-    const chatInput = document.getElementById('chatInput');
-    const sendMessageButton = document.getElementById('sendMessageButton');
-    const chatMessages = document.getElementById('chatMessages');
-
-    let localStream;
-    let peerConnection;
-    let isChatting = false;
-
-    nextButton.addEventListener('click', startConnection);
-    sendMessageButton.addEventListener('click', sendMessage);
-    stopButton.addEventListener('click', stopConnection);
-
-    // Start the video connection
-    async function startConnection() {
-      if (!isChatting) {
-        clearChat(); // Clear chat when a new user is connected
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localStream = stream;
-
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        socket.emit('offer', offer);
-
-        peerConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            socket.emit('ice-candidate', event.candidate);
-          }
-        };
-
-        peerConnection.ontrack = (event) => {
-          remoteVideo.srcObject = event.streams[0];
-        };
-
-        isChatting = true;
-        nextButton.textContent = "Next (Change User)";
-      } else {
-        changeUserConnection();
-      }
-    }
-
-    // Change user connection (new user)
-    function changeUserConnection() {
-      stopConnection();
-      startConnection();
-    }
-
-    // Stop the video connection and clear chat
-    function stopConnection() {
-      clearChat(); // Clear chat when stopping
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-      }
-      if (peerConnection) {
-        peerConnection.close();
-      }
-      localVideo.srcObject = null;
-      remoteVideo.srcObject = null;
-      isChatting = false;
-      nextButton.textContent = "Next";
-    }
-
-    // Send chat message
-    function sendMessage() {
-      const message = chatInput.value.trim();
-      if (message) {
-        socket.emit('chat-message', { sender: "You", message });
-        chatInput.value = '';
-        appendMessage("You", message);
-      }
-    }
-
-    // Append message to the chat
-    function appendMessage(sender, message) {
-      const messageElement = document.createElement('div');
-      messageElement.classList.add('p-2', 'border-b', 'border-gray-600', 'rounded-lg');
-      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-      chatMessages.appendChild(messageElement);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Clear chat messages
-    function clearChat() {
-      chatMessages.innerHTML = '';
-    }
-
-    // Listen for chat messages from other users
-    socket.on('chat-message', (data) => {
-      // Check if the sender is the current user
-      const sender = data.sender === socket.id ? 'You' : 'Stranger';
-      appendMessage(sender, data.message);
-    });
-
-    // Handle incoming offers, answers, and ICE candidates
-    socket.on('offer', async (offer) => {
-      if (!peerConnection) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = stream;
-        localStream = stream;
-
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-      }
-
-      await peerConnection.setRemoteDescription(offer);
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      socket.emit('answer', answer);
-    });
-
-    socket.on('answer', (answer) => {
-      peerConnection.setRemoteDescription(answer);
-    });
-
-    socket.on('ice-candidate', (candidate) => {
-      peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-    });
-
-    socket.on('disconnect', () => {
-      // Clear chat when the user disconnects
-      clearChat();
-    });
-  </script>
-</body>
-
-</html>
