@@ -34,10 +34,10 @@
               <span class="material-icons text-sm">report_problem</span>
             </button>
             <div class="absolute right-0 hidden mt-2 bg-white rounded-lg shadow-lg w-48 text-black z-10 dropdown-menu">
-              <ul>
-                <li><a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Report Bug</a></li>
-                <li><a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Report User</a></li>
-                <li><a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Report Feedback</a></li>
+              <<ul>
+  <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSfu5K5D9Zi-AB5_A9B3fq6xgOInVX-8f6p56P8b5GJz9c0ALw/viewform" target="_blank" class="block px-4 py-2 text-sm hover:bg-gray-100">Report Bug</a></li>
+  <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSfu5K5D9Zi-AB5_A9B3fq6xgOInVX-8f6p56P8b5GJz9c0ALw/viewform" target="_blank" class="block px-4 py-2 text-sm hover:bg-gray-100">Report Feedback</a></li>
+  <li><a href="#" id="reportUserBtn" class="block px-4 py-2 text-sm hover:bg-gray-100">Report User</a></li>
               </ul>
             </div>
           </div>
@@ -59,15 +59,26 @@
     </div>
   </div>
 
-  <script>
-    // Dropdown menu toggle functionality
-    const reportButton = document.querySelector('button');
-    const dropdownMenu = document.querySelector('.dropdown-menu');
-    
-    reportButton.addEventListener('click', () => {
-      dropdownMenu.classList.toggle('hidden');
-    });
-  </script>
+<script>
+  // Dropdown menu toggle functionality
+  const reportButton = document.querySelector('button');
+  const dropdownMenu = document.querySelector('.dropdown-menu');
+  
+  reportButton.addEventListener('click', () => {
+    dropdownMenu.classList.toggle('hidden');
+  });
+
+  // Report User - desconectar al usuario
+  const reportUserBtn = document.getElementById('reportUserBtn');
+  const socket = io();
+
+  reportUserBtn.addEventListener('click', () => {
+    socket.emit('report-user'); // Emitir evento para reportar al usuario
+    alert('Usuario reportado. El usuario será desconectado.');
+    socket.disconnect(); // Desconectar al usuario
+  });
+</script>
+
   <script>
     const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
     const localVideo = document.getElementById('localVideo');
