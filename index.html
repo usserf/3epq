@@ -191,9 +191,23 @@ const reportUserBtn = document.getElementById('reportUserBtn');
 
 reportUserBtn.addEventListener('click', () => {
   socket.emit('report-user');
-  alert('Usuario reportado. El usuario será desconectado.');
+  alert('User reported. The connection will be closed.');
+  
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+  }
+  
+  if (peerConnection) {
+    peerConnection.close();
+  }
+  
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+  
   socket.disconnect();
+  location.reload();
 });
+
 
   </script>
 </body>
