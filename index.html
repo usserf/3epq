@@ -41,9 +41,129 @@
         <button id="sendMessageButton" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">
           <span class="material-icons">send</span>
         </button>
-      </div>
+        
+<div class="relative inline-block text-left ml-2">
+  <button id="emoji-btn" class="px-4 py-2 bg-yellow-500 text-white rounded-full hover:bg-yellow-400">
+    <span class="material-icons">emoji_emotions</span>
+  </button>
+
+  <div id="emoji-dropdown" class="hidden origin-bottom-left absolute bottom-full mb-2 right-0 w-64 rounded-lg shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5 p-2 max-h-96 overflow-y-auto">
+    <div class="flex flex-wrap space-x-2 mb-2">
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😀')">😀</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😁')">😁</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😂')">😂</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🤣')">🤣</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😃')">😃</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😄')">😄</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😅')">😅</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😆')">😆</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😍')">😍</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😘')">😘</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😜')">😜</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😝')">😝</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😋')">😋</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😎')">😎</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🤔')">🤔</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🙄')">🙄</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('😏')">😏</button>
     </div>
-  </div>
+    <div class="flex flex-wrap space-x-2 mb-2">
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💪')">💪</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('👊')">👊</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('✌️')">✌️</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🤘')">🤘</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('👌')">👌</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('👋')">👋</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('👍')">👍</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('👎')">👎</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('👏')">👏</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🙌')">🙌</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🤝')">🤝</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💥')">💥</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💣')">💣</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🔥')">🔥</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🌟')">🌟</button>
+</div>
+<div class="flex flex-wrap space-x-2 mb-2">
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('❤️')">❤️</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💛')">💛</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💚')">💚</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💙')">💙</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💜')">💜</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🖤')">🖤</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🤍')">🤍</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💔')">💔</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('❣️')">❣️</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('💕')">💕</button>
+</div>
+
+    <div class="flex flex-wrap space-x-2 mb-2">
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐱')">🐱</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐶')">🐶</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐷')">🐷</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐶')">🐶</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🦁')">🦁</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐯')">🐯</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐸')">🐸</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐵')">🐵</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🦄')">🦄</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐮')">🐮</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐔')">🐔</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐧')">🐧</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐢')">🐢</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐍')">🐍</button>
+      <button class="emoji-button text-white text-3xl" onclick="addEmoji('🐙')">🐙</button>
+    </div>
+
+
+<div class="flex flex-wrap space-x-2 mb-2">
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍎')">🍎</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍊')">🍊</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍌')">🍌</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍓')">🍓</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍑')">🍑</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍍')">🍍</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍒')">🍒</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍉')">🍉</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍇')">🍇</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍒')">🍒</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍉')">🍉</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🍇')">🍇</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🥥')">🥥</button>
+  <button class="emoji-button text-white text-3xl" onclick="addEmoji('🥭')">🥭</button>
+</div>
+
+
+  <script>
+    const chatMessages = document.getElementById('chatMessages');
+    const sendMessageButton = document.getElementById('sendMessageButton');
+    const emojiButton = document.getElementById('emoji-btn');
+    const emojiDropdown = document.getElementById('emoji-dropdown');
+    const chatInput = document.getElementById('chatInput');
+
+    function sendMessage() {
+      const messageText = chatInput.value.trim();
+      if (messageText) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.textContent = messageText;
+        chatMessages.appendChild(messageElement);
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }
+
+    emojiButton.addEventListener('click', () => {
+      emojiDropdown.classList.toggle('hidden');
+    });
+
+    function addEmoji(emoji) {
+      chatInput.value += emoji;
+      emojiDropdown.classList.add('hidden');
+    }
+
+    sendMessageButton.addEventListener('click', sendMessage);
+  </script>
 
   <script>
     const socket = io("https://41a49064-047e-4554-a05e-bc548e9a2078-00-2wmjwsf4dp8sw.picard.replit.dev");
